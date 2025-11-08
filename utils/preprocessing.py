@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from pickle import dump
+from pickle import dump, load
 import string
 from tqdm import tqdm
 from utils.model import CNNModel
@@ -134,14 +134,32 @@ def save_captions(captions, filename):
 def preprocessData(config):
 	print('{}: Using {} model'.format(mytime(),config['model_type'].title()))
 	# Extract features from all images
-	if os.path.exists(config['model_data_path']+'features_'+str(config['model_type'])+'.pkl'):
-		print('{}: Image features already generated at {}'.format(mytime(), config['model_data_path']+'features_'+str(config['model_type'])+'.pkl'))
+	features_path = config['model_data_path']+'features_'+str(config['model_type'])+'.pkl'
+	if os.path.exists(features_path):
+		print('{}: Image features already generated at {}'.format(mytime(), features_path))
+		try:
+			with open(features_path, 'rb') as f:
+				_existing = load(f)
+			_expected_dim = 2048 if config['model_type'] == 'inceptionv3' else 4096
+			_sample = next(iter(_existing.values())) if len(_existing) > 0 else None
+			_current_dim = int(_sample.shape[-1]) if _sample is not None else _expected_dim
+			if _current_dim != _expected_dim:
+				print('{}: Detected feature dimension {} but expected {}. Regenerating features...'.format(mytime(), _current_dim, _expected_dim))
+				features = extract_features(config['images_path'], config['model_type'])
+				dump(features, open(features_path, 'wb'))
+				print('{}: Completed & Saved features for {} images successfully'.format(mytime(),len(features)))
+		except Exception as e:
+			print('{}: Failed to validate existing features ({}). Regenerating...'.format(mytime(), str(e)))
+			features = extract_features(config['images_path'], config['model_type'])
+			dump(features, open(features_path, 'wb'))
+			print('{}: Completed & Saved features for {} images successfully'.format(mytime(),len(features)))
 	else:
 		print('{}: Generating image features using '+str(config['model_type'])+' model...'.format(mytime()))
 		features = extract_features(config['images_path'], config['model_type'])
 		# Save to file
-		dump(features, open(config['model_data_path']+'features_'+str(config['model_type'])+'.pkl', 'wb'))
+		dump(features, open(features_path, 'wb'))
 		print('{}: Completed & Saved features for {} images successfully'.format(mytime(),len(features)))
+
 	# Load file containing captions and parse them
 	if os.path.exists(config['model_data_path']+'captions.txt'):
 		print('{}: Parsed caption file already generated at {}'.format(mytime(), config['model_data_path']+'captions.txt'))

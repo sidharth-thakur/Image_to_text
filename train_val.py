@@ -55,7 +55,7 @@ if len(X2train)%batch_size!=0:
 steps_val = len(X2val)//batch_size
 if len(X2val)%batch_size!=0:
     steps_val = steps_val+1
-model_save_path = config['model_data_path']+"model_"+str(config['model_type'])+"_epoch-{epoch:02d}_train_loss-{loss:.4f}_val_loss-{val_loss:.4f}.hdf5"
+model_save_path = config['model_data_path']+"model_"+str(config['model_type'])+"_epoch-{epoch:02d}_train_loss-{loss:.4f}_val_loss-{val_loss:.4f}.keras"
 checkpoint = ModelCheckpoint(model_save_path, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 callbacks = [checkpoint]
 
@@ -77,7 +77,7 @@ generator_train = data_generator(X1train, X2train, tokenizer, max_length, batch_
 generator_val = data_generator(X1val, X2val, tokenizer, max_length, batch_size, config['random_seed'])
 
 # Fit for one epoch
-model.fit_generator(generator_train,
+model.fit(generator_train,
             epochs=num_of_epochs,
             steps_per_epoch=steps_train,
             validation_data=generator_val,
@@ -86,7 +86,7 @@ model.fit_generator(generator_train,
             verbose=1)
 
 """
-	*Evaluate the model on validation data and ouput BLEU score
+	*Evaluate the model on validation data and Douput BLEU score
 """
 print('Model trained successfully. Running model on validation set for calculating BLEU score using BEAM search with k={}'.format(config['beam_search_k']))
 evaluate_model_beam_search(model, X1val, X2val, tokenizer, max_length, beam_index=config['beam_search_k'])

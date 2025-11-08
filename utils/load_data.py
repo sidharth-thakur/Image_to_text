@@ -1,8 +1,8 @@
 import numpy as np
 from utils.preprocessing import *
 from pickle import load, dump
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 import random
 '''
@@ -173,7 +173,7 @@ def data_generator(images, captions, tokenizer, max_length, batch_size, random_s
 				input_sequence_batch.append(input_sequence[j])
 				output_word_batch.append(output_word[j])
 		_count = _count + batch_size
-		yield [[np.array(input_img_batch), np.array(input_sequence_batch)], np.array(output_word_batch)]
+		yield (np.array(input_img_batch), np.array(input_sequence_batch)), np.array(output_word_batch)
 
 def loadTrainData(config):
 	train_image_ids = load_set(config['train_data_path'])
